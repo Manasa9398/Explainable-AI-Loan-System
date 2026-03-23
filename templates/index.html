@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>XAI Loan Prediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <h1>🏦 XAI Loan Prediction System</h1>
+    <p class="subtitle">Powered by XGBoost + SHAP + LIME — See exactly WHY a loan is Approved or Rejected</p>
+
+    <div class="grid">
+
+        <!-- INPUT PANEL -->
+        <div class="card">
+            <h2>🔧 APPLICANT DETAILS</h2>
+
+            <label>CIBIL Score <span class="val" id="cibil_val">750</span></label>
+            <input type="range" id="CIBIL_Score" min="300" max="900" step="10" value="750"
+                oninput="document.getElementById('cibil_val').textContent=this.value">
+
+            <!-- Show rating dynamically -->
+            <div id="cibil_rating" style="font-size:12px; margin-top:4px;"></div>
+
+            <script>
+                document.getElementById('CIBIL_Score').addEventListener('input', function () {
+                    const score = this.value;
+                    const ratingDiv = document.getElementById('cibil_rating');
+                    if (score >= 750) ratingDiv.innerHTML = '⭐ Excellent — Easy Approval';
+                    else if (score >= 700) ratingDiv.innerHTML = '✅ Good — Likely Approved';
+                    else if (score >= 650) ratingDiv.innerHTML = '⚠️ Average — Conditional';
+                    else if (score >= 600) ratingDiv.innerHTML = '❌ Poor — Likely Rejected';
+                    else ratingDiv.innerHTML = '🚫 Very Poor — Rejected';
+                });
+            </script>
+
+            <label>Applicant Income ($) <span class="val" id="ai_val">$5,000</span></label>
+            <input type="range" id="ApplicantIncome" min="0" max="20000" step="100" value="5000"
+                oninput="document.getElementById('ai_val').textContent='$'+Number(this.value).toLocaleString()">
+
+            <label>Co-applicant Income ($) <span class="val" id="ci_val">$0</span></label>
+            <input type="range" id="CoapplicantIncome" min="0" max="10000" step="100" value="0"
+                oninput="document.getElementById('ci_val').textContent='$'+Number(this.value).toLocaleString()">
+
+            <label>Loan Amount (in $000s) <span class="val" id="la_val">128</span></label>
+            <input type="range" id="LoanAmount" min="10" max="700" step="5" value="128"
+                oninput="document.getElementById('la_val').textContent=this.value">
+
+            <label>Loan Term (months)</label>
+            <select id="Loan_Amount_Term">
+                <option value="360">360 months — 30 years (512 applicants)</option>
+                <option value="180">180 months — 15 years (44 applicants)</option>
+                <option value="480">480 months — 40 years (15 applicants)</option>
+                <option value="300">300 months — 25 years (13 applicants)</option>
+                <option value="240">240 months — 20 years (4 applicants)</option>
+                <option value="84">84 months — 7 years (4 applicants)</option>
+                <option value="120">120 months — 10 years (3 applicants)</option>
+                <option value="60">60 months — 5 years (2 applicants)</option>
+                <option value="36">36 months — 3 years (2 applicants)</option>
+                <option value="12">12 months — 1 year (1 applicant)</option>
+            </select>
+
+            <label>Gender</label>
+            <select id="Gender">
+                <option value="1">Male</option>
+                <option value="0">Female</option>
+            </select>
+
+            <label>Married</label>
+            <select id="Married">
+                <option value="1">Yes</option>
+                <option value="0">No</option>
+            </select>
+
+            <label>Education</label>
+            <select id="Education">
+                <option value="0">Graduate</option>
+                <option value="1">Not Graduate</option>
+            </select>
+
+            <label>Self Employed</label>
+            <select id="Self_Employed">
+                <option value="0">No</option>
+                <option value="1">Yes</option>
+            </select>
+
+            <label>Dependents</label>
+            <select id="Dependents">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3+</option>
+            </select>
+
+            <label>Property Area</label>
+            <select id="Property_Area">
+                <option value="2">Urban</option>
+                <option value="1">Semiurban</option>
+                <option value="0">Rural</option>
+            </select>
+
+            <button onclick="predict()">🔍 Predict & Explain</button>
+        </div>
+
+        <!-- OUTPUT PANEL -->
+        <div class="card">
+            <h2>📊 PREDICTION & EXPLANATION</h2>
+
+            <div id="loader">⏳ Running XAI analysis, please wait...</div>
+
+            <div id="result-box">
+                <h2 id="result-label"></h2>
+                <p id="result-prob"></p>
+            </div>
+
+            <div id="explanation" style="display:none">
+
+                <div class="section-title">🔬 SHAP — FEATURE CONTRIBUTIONS</div>
+                <p style="font-size:11px;color:#64748b;margin-bottom:8px;">
+                    Green = pushed toward Approval &nbsp;|&nbsp; Red = pushed toward Rejection
+                </p>
+                <div id="shap-bars"></div>
+                <img id="shap-img" src="" alt="SHAP Chart">
+
+                <div class="section-title">🧪 LIME — DECISION RULES</div>
+                <p style="font-size:11px;color:#64748b;margin-bottom:8px;">
+                    Human-readable rules explaining this individual prediction
+                </p>
+                <ul id="lime-list"></ul>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
